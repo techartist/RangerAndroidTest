@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import rangerhealth.com.rangerandroidtest.MainActivity;
 import rangerhealth.com.rangerandroidtest.model.UserList;
+import rangerhealth.com.rangerandroidtest.singleton.Constants;
 import rangerhealth.com.rangerandroidtest.util.TestUtilString;
 
 import static junit.framework.Assert.assertEquals;
@@ -37,7 +38,7 @@ public class PeopleTest {
         assertNotNull(strJson3);
         strings.add(strJson3);
         try {
-            userLists = MainActivity.createUserLists(strings);
+            userLists = UserList.createUserLists(strings);
         } catch(JSONException e) {
             Log.e(TAG,e.toString());
         }
@@ -47,11 +48,11 @@ public class PeopleTest {
 
     @Test
     public void getPeople() {
-        UserList userListYellow = userLists.get(MainActivity.COLORS.YELLOW.getColor());
+        UserList userListYellow = userLists.get(Constants.COLORS.YELLOW.getColor());
         assertEquals(userListYellow.get(0).getName(),"David");
-        UserList userListBlue = userLists.get(MainActivity.COLORS.BLUE.getColor());
+        UserList userListBlue = userLists.get(Constants.COLORS.BLUE.getColor());
         assertEquals(userListBlue.get(1).getName(),"David");
-        UserList userListGreen = userLists.get(MainActivity.COLORS.GREEN.getColor());
+        UserList userListGreen = userLists.get(Constants.COLORS.GREEN.getColor());
         assertEquals(userListGreen.get(2).getName(), "John");
 
     }

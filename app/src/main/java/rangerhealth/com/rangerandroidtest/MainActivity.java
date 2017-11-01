@@ -36,7 +36,6 @@ import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.SingleOnSubscribe;
@@ -46,6 +45,10 @@ import io.reactivex.schedulers.Schedulers;
 import rangerhealth.com.rangerandroidtest.model.User;
 import rangerhealth.com.rangerandroidtest.model.UserList;
 import rangerhealth.com.rangerandroidtest.singleton.Constants;
+
+import static rangerhealth.com.rangerandroidtest.singleton.Constants.eyes;
+import static rangerhealth.com.rangerandroidtest.singleton.Constants.mouths;
+import static rangerhealth.com.rangerandroidtest.singleton.Constants.noses;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -67,32 +70,6 @@ public class MainActivity extends AppCompatActivity {
     private HashMap<String, UserList> list = new HashMap<>();
 
 
-    @VisibleForTesting
-    public enum COLORS {
-        YELLOW("yellow","ffff66"),
-        GREEN("green", "63ef43"),
-        BLUE("blue","4377ef");
-
-        private String color;
-        private String RGB;
-
-
-        COLORS(String color, String RGB) {
-            this.RGB = RGB;
-            this.color = color;
-        }
-
-        public String getColor() {
-            return color;
-        }
-        public String getRGB() { return RGB;}
-
-
-    }
-
-
-
-
     @BindView(R.id.recyclerView)
     RecyclerView mRecyclerView;
 
@@ -108,21 +85,21 @@ public class MainActivity extends AppCompatActivity {
                         userList = userListYellow;
 
                         mAdapter.notifyDataSetChanged();
-                        preferences.edit().putString(COLOR,COLORS.YELLOW.getColor()).apply();
+                        preferences.edit().putString(COLOR, Constants.COLORS.YELLOW.getColor()).apply();
                         return true;
                     case R.id.navigation_dashboard:
                         userList = userListBlue;
                         mAdapter.notifyDataSetChanged();
-                        preferences.edit().putString(COLOR,COLORS.BLUE.getColor()).apply();
+                        preferences.edit().putString(COLOR, Constants.COLORS.BLUE.getColor()).apply();
                         return true;
                     case R.id.navigation_notifications:
                         userList = userListGreen;
-                        preferences.edit().putString(COLOR,COLORS.GREEN.getColor()).apply();
+                        preferences.edit().putString(COLOR, Constants.COLORS.GREEN.getColor()).apply();
                         mAdapter.notifyDataSetChanged();
                         return true;
                 }
             } else {
-                getPeople(COLORS.YELLOW.getColor());
+                getPeople(Constants.COLORS.YELLOW.getColor());
             }
             return false;
         }
@@ -134,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         preferences =PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String color = preferences.getString(COLOR,COLORS.YELLOW.getColor());
+        String color = preferences.getString(COLOR, Constants.COLORS.YELLOW.getColor());
         if (savedInstanceState != null) {
             userList = (UserList) savedInstanceState.getSerializable(Constants.KEY_INSTANCE_STATE_USER_LIST);
             userListYellow = (UserList)savedInstanceState.getSerializable(Constants.KEY_INSTANCE_STATE_USER_LIST_YELLOW);
@@ -188,9 +165,9 @@ public class MainActivity extends AppCompatActivity {
                     if (progressDialog != null && progressDialog.isShowing()) {
                         progressDialog.dismiss();
                     }
-                    userListYellow = peopleHashMap.get(COLORS.YELLOW.getColor());
-                    userListGreen = peopleHashMap.get(COLORS.GREEN.getColor());
-                    userListBlue = peopleHashMap.get(COLORS.BLUE.getColor());
+                    userListYellow = peopleHashMap.get(Constants.COLORS.YELLOW.getColor());
+                    userListGreen = peopleHashMap.get(Constants.COLORS.GREEN.getColor());
+                    userListBlue = peopleHashMap.get(Constants.COLORS.BLUE.getColor());
                     userList = userListYellow;
                     Log.d(TAG, "Subscribe Called Once");
                     mAdapter = new RecyclerAdapter();
@@ -212,11 +189,11 @@ public class MainActivity extends AppCompatActivity {
                     .subscribe(observer);
 
         } else {
-            if (color.equalsIgnoreCase(COLORS.YELLOW.getColor()) || color.length() == 0) {
+            if (color.equalsIgnoreCase(Constants.COLORS.YELLOW.getColor()) || color.length() == 0) {
                 userList = userListYellow;
-            } else if (color.equalsIgnoreCase(COLORS.YELLOW.getColor())) {
+            } else if (color.equalsIgnoreCase(Constants.COLORS.YELLOW.getColor())) {
                 userList = userListBlue;
-            } else if (color.equalsIgnoreCase(COLORS.GREEN.getColor())) {
+            } else if (color.equalsIgnoreCase(Constants.COLORS.GREEN.getColor())) {
                 userList = userListGreen;
             }
             if (mAdapter != null) {
@@ -244,69 +221,16 @@ public class MainActivity extends AppCompatActivity {
         return Single.create(single)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .map(names -> createUserLists(names)).cache();
+                .map(names -> UserList.createUserLists(names)).cache();
 
 
     }
 
 
-    @VisibleForTesting
-    public static  HashMap<String, UserList>  createUserLists(ArrayList<String> strings) throws JSONException{
-        HashMap<String, UserList> list = new HashMap<>();
-
-        String[] eyes = {"eyes1", "eyes2", "eyes3", "eyes4", "eyes5", "eyes6", "eyes7", "eyes8", "eyes9"};
-        String[] noses = {"nose1", "nose2", "nose3", "nose4", "nose5", "nose6", "nose7", "nose8", "nose9"};
-        String[] mouths = {"mouth1", "mouth2", "mouth3", "mouth4", "mouth5", "mouth6", "mouth7", "mouth8", "mouth9"};
-
-
-        for (int j = 0;j<strings.size();j++) {
-            COLORS color = getColorForList(j);
-            JSONArray array = new JSONArray(strings.get(j));
-
-            UserList users = new UserList();
-            for (int i = 0; i < array.length(); i++) {
-                String name = array.getString(i);
-
-
-                User user = new User();
-
-                Random generator = new Random();
-                int randomEye = generator.nextInt(eyes.length);
-                int randomNose = generator.nextInt(noses.length);
-                int randomMouth = generator.nextInt(mouths.length);
-
-                user.setName(name);
-
-                user.setAvatar("https://api.adorable.io/avatars/face/" + eyes[randomEye] + "/"
-                        + noses[randomNose] + "/" + mouths[randomMouth] + "/" + color.getRGB());
-
-                users.add(user);
-            }
-            list.put(color.getColor(),users);
-
-        }
-        return list;
-
-
-    }
-
-    private static COLORS getColorForList(int i) {
-        for (COLORS color : COLORS.values()) {
-            if (i == COLORS.YELLOW.ordinal()) {
-                return COLORS.YELLOW;
-            } else if (i == COLORS.BLUE.ordinal()) {
-                return COLORS.BLUE;
-            } else if (i == COLORS.GREEN.ordinal()) {
-                return COLORS.GREEN;
-            }
-        }
-        return COLORS.YELLOW;
-
-    }
 
     private ArrayList<String> getUserNameLists() throws IOException {
         ArrayList<String> lists = new ArrayList<>();
-        for (COLORS color : COLORS.values()) {
+        for (Constants.COLORS color : Constants.COLORS.values()) {
             String list = getPeopleFromWeb();
             lists.add(list);
 
