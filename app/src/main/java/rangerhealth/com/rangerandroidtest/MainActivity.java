@@ -30,11 +30,13 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.SingleOnSubscribe;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private String TAG = this.getClass().getSimpleName();
     private SharedPreferences preferences;
     private String COLOR = "color";
+    private HashMap<String, UserList> list = new HashMap<>();
 
 
     @VisibleForTesting
@@ -205,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
 
-            getPeopleObservable()
+            getPeopleObservableArrayList()
                     .subscribe(observer);
 
         } else {
@@ -230,10 +233,10 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private  Single<HashMap<String, UserList>> getPeopleObservable() {
+    private  Single<HashMap<String, UserList>> getPeopleObservableArrayList() {
 
-        SingleOnSubscribe<String> single = (e -> {
-            String names = getPeopleFromWeb();
+        SingleOnSubscribe<ArrayList<String>> single = (e -> {
+            ArrayList<String> names = getUserNameLists();
             e.onSuccess(names);
 
         });
@@ -241,21 +244,25 @@ public class MainActivity extends AppCompatActivity {
         return Single.create(single)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .map(names -> createHashMap(names)).cache();
+                .map(names -> createUserLists(names)).cache();
 
 
     }
 
+
     @VisibleForTesting
-    public static  HashMap<String, UserList> createHashMap(String string) throws JSONException{
+    public static  HashMap<String, UserList>  createUserLists(ArrayList<String> strings) throws JSONException{
         HashMap<String, UserList> list = new HashMap<>();
 
         String[] eyes = {"eyes1", "eyes2", "eyes3", "eyes4", "eyes5", "eyes6", "eyes7", "eyes8", "eyes9"};
         String[] noses = {"nose1", "nose2", "nose3", "nose4", "nose5", "nose6", "nose7", "nose8", "nose9"};
         String[] mouths = {"mouth1", "mouth2", "mouth3", "mouth4", "mouth5", "mouth6", "mouth7", "mouth8", "mouth9"};
 
-        JSONArray array = new JSONArray(string);
-        for (COLORS color : COLORS.values()) {
+
+        for (int j = 0;j<strings.size();j++) {
+            COLORS color = getColorForList(j);
+            JSONArray array = new JSONArray(strings.get(j));
+
             UserList users = new UserList();
             for (int i = 0; i < array.length(); i++) {
                 String name = array.getString(i);
@@ -276,9 +283,35 @@ public class MainActivity extends AppCompatActivity {
                 users.add(user);
             }
             list.put(color.getColor(),users);
-        }
 
+        }
         return list;
+
+
+    }
+
+    private static COLORS getColorForList(int i) {
+        for (COLORS color : COLORS.values()) {
+            if (i == COLORS.YELLOW.ordinal()) {
+                return COLORS.YELLOW;
+            } else if (i == COLORS.BLUE.ordinal()) {
+                return COLORS.BLUE;
+            } else if (i == COLORS.GREEN.ordinal()) {
+                return COLORS.GREEN;
+            }
+        }
+        return COLORS.YELLOW;
+
+    }
+
+    private ArrayList<String> getUserNameLists() throws IOException {
+        ArrayList<String> lists = new ArrayList<>();
+        for (COLORS color : COLORS.values()) {
+            String list = getPeopleFromWeb();
+            lists.add(list);
+
+        }
+        return lists;
 
     }
 
